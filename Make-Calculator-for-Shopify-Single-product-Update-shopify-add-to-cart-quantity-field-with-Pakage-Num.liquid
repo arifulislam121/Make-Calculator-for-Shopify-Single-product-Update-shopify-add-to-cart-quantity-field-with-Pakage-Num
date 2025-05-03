@@ -1,0 +1,94 @@
+<div class="cal_area">
+  <!-- package content -->
+  <div style="display:none" id="pakageContent">
+    {% assign metafield_labels = 'Pakinhoud' | split: ',' %}
+    {% assign metafield_keys = 'pakinhoudj' | split: ',' %}
+    {% assign metafield_fields = 'pakinhoud_label' | split: ',' %}
+
+    {% for metafield_key in metafield_keys %}
+      {% assign index = forloop.index0 %}
+      {% assign metafield_field = metafield_fields[index] %}
+      {% assign metafield_values = product.metafields.custom[metafield_key].value %}
+
+      {% if metafield_values != blank %}
+        {% for item in metafield_values %}
+          {{ item[metafield_field] -}}
+          {%- unless forloop.last %}, {% endunless %}
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- Show product price -->
+  <p id="pricePerM2" data-price="{{ product.price }}"></p>
+
+  <!-- Quantity input -->
+  <label>
+    Enter Quantity (m²):<br>
+    <input type="number" id="quantityInput" value="10" min="1">
+  </label>
+  <!-- Calculate button -->
+  <button id="calculateButton">Calculate Total</button>
+
+  <!-- Cutting loss checkbox -->
+  <p>
+    <label> <input type="checkbox" id="cuttingLossCheckbox"> 🪓 Add 10% Cutting Loss </label>
+  </p>
+
+  <!-- Result display -->
+  <h5 id="pakned"></h5>
+  <h5 id="result"></h5>
+
+  <script>
+                        document.getElementById('calculateButton').addEventListener('click', function() {
+                          var Product_pricePerM2Cents = document.getElementById('pricePerM2').getAttribute('data-price');
+                          var Product_price = parseFloat(Product_pricePerM2Cents) / 100;
+
+                 //========pakage content start====================
+                          var get_Pakage_ctn = document.getElementById('pakageContent').innerText;
+
+                             // Remove everything except digits and decimal points
+                            var Pakage_ctn_num = get_Pakage_ctn.replace(/[^0-9.]/g, '');
+
+                            // Convert it to a number
+                            Pakage_ctn_num = parseFloat(Pakage_ctn_num).toFixed(2);
+
+                        const Pakage_Price = (Pakage_ctn_num *Product_price).toFixed(2);
+
+
+                //=======end==========
+
+
+                          // Quantity Input
+                          var quantity = parseFloat(document.getElementById('quantityInput').value);
+
+                          var cuttingLossChecked = document.getElementById('cuttingLossCheckbox').checked;
+
+                           //  Adjust Quantity (if 10% Cutting Loss is Checked)
+                        var adjustedQuantity = cuttingLossChecked ? (quantity * 1.10) : quantity;
+                                    adjustedQuantity = adjustedQuantity.toFixed(2);
+
+                          //Calculate Needed Number of Packages
+
+                          const Neded_Paakge=adjustedQuantity/Pakage_ctn_num;
+                          var roundedUp = Math.ceil(Neded_Paakge)
+
+    //=======Final Calculator Price ======
+
+                          const Final_Price=roundedUp*Pakage_Price;
+
+                    // Display results
+                          document.getElementById('pakned').innerHTML ="Packages Needed : "+ roundedUp;
+                            document.getElementById('result').innerHTML ="Total Price :" + "€ "+Final_Price.toFixed(2);
+
+
+
+    //===== Update shopify add to cart quantity field with pakage number when click on calculator button =====//
+
+       const newQuantity = roundedUp;
+        document.querySelector('.quantity__input').value = newQuantity;
+
+
+                        });
+  </script>
+</div>
